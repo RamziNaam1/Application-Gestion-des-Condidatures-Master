@@ -1,0 +1,31 @@
+.master-program-card {
+    background: linear-gradient(135deg, #ffffff, #d4e0f4);
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+  }
+  
+  .master-program-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  .master-program-card.current-slide {
+    background: #384a7c;
+    color: white;
+    height: 300px;
+  }
+  
+  .program-title {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+  
+  .program-description {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  .custom-height {
+    height: 1500px;
+  }
+ 
+  

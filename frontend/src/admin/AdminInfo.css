@@ -1,0 +1,102 @@
+/* AdminInfo.css */
+
+.admin-profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-profile-heading {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.change-password-button {
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.profile-photo-container {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.profile-photo-label {
+  cursor: pointer;
+}
+
+.profile-photo-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.profile-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.profile-photo-container:hover .photo-overlay {
+  opacity: 1;
+}
+
+.camera-icon {
+  color: #fff;
+}
+
+.submit-button {
+  display: block;
+  margin: 20px auto;
+  width: 150px;
+  font-size: 16px;
+}
+
+/* General Information Section */
+.general-info-section {
+  margin-bottom: 30px;
+  
+}
+
+.general-info-section label {
+  font-weight: bold;
+}
+
+.form-control {
+  border-radius: 8px;
+}
+
+/* Modal Styling */
+.modal-content {
+  border-radius: 10px;
+}
+
+.modal-header {
+  border-bottom: none;
+}
+
+.modal-footer {
+  border-top: none;
+}

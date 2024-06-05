@@ -1,0 +1,89 @@
+.program-form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* semi-transparent black overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .program-form-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .program-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .program-form-header h3 {
+    margin: 0;
+  }
+  
+  .program-form-header button {
+    background-color: #dc3545; /* red */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .program-form-header button:hover {
+    background-color: #c82333; /* darker red on hover */
+  }
+  
+  .program-form-body input,
+  .program-form-body textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ced4da; /* gray */
+    border-radius: 4px;
+    resize: none; /* prevent textarea resizing */
+  }
+  
+  .program-form-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+  
+  .program-form-footer button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .program-form-footer button.btn-success {
+    background-color: #28a745; /* green */
+    color: white;
+    border: none;
+  }
+  
+  .program-form-footer button.btn-success:hover {
+    background-color: #218838; /* darker green on hover */
+  }
+  
+  .program-form-footer button.btn-danger {
+    background-color: #dc3545; /* red */
+    color: white;
+    border: none;
+    margin-left: 10px;
+  }
+  
+  .program-form-footer button.btn-danger:hover {
+    background-color: #c82333; /* darker red on hover */
+  }
+  

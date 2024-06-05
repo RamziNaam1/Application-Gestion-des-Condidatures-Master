@@ -1,0 +1,19 @@
+.dashboard{
+    display:flex;
+    gap: 40px;
+    padding: 20px; 
+}
+.dashboard--content {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem;
+    display: flex;
+    flex: 1; /* Fill remaining height */
+    flex-direction: column;
+  }
+
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }

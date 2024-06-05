@@ -1,0 +1,56 @@
+/* Application.css */
+
+/* Style for the modal title */
+.modal-title {
+  font-size: 24px;
+  color: #333;
+}
+
+/* Style for form labels */
+.form-label {
+  font-size: 18px;
+  color: #555;
+}
+
+/* Style for form controls */
+.form-control {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 8px;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Style for file input labels */
+.file-label {
+  font-size: 16px;
+  color: #555;
+}
+
+/* Style for file input controls */
+.form-control-file {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 8px;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Style for modal header */
+.modal-header {
+  background-color: #f0f0f0;
+  border-bottom: none;
+}
+
+/* Style for modal footer */
+.modal-footer {
+  background-color: #f0f0f0;
+  border-top: none;
+}
+
+/* Style for modal footer buttons */
+.modal-footer .btn {
+  margin-right: 10px;
+}
+
+

@@ -1,0 +1,70 @@
+.files-section {
+  padding: 20px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+}
+
+.files-header {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.file-container-wrapper {
+  flex: 1; /* Grow to fill available space */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+  justify-content: center; /* Center vertically */
+  margin-bottom: 20px; /* Adjust as needed */
+}
+
+.back-button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-right: 1080px;
+  border-radius: 20px;
+}
+.back-button:hover{
+    background-color: blueviolet;
+}
+
+  
+  .file-container {
+
+    width: 800px;
+    display: flex;
+    flex-direction: column;
+    
+    gap: 40px;
+  }
+  
+  .file-item {
+    display: flex; /* Display as flex container */
+    flex-direction: column; /* Arrange children vertically */
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+  }
+  
+  .file-name {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .pdf-document {
+    width: 100%; /* Make PDF document fill its container */
+    max-width: 100%; /* Ensure PDF doesn't overflow its container */
+    height: auto; /* Maintain aspect ratio */
+    
+  }
+  
