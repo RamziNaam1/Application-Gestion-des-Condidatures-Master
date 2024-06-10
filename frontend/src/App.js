@@ -2,6 +2,8 @@ import React ,{useState} from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Login from './login';
 import Signup from './signup';
+import ForgotPassword from './ForgotPassword';
+import ResetPassword from './ResetPassword';  
 import EtudiantPage from './home/EtudiantPage/EtudiantPage';
 import GlobalStyles from './globalStyles';
 import Home from './home/Pages/HomePage/Home';
@@ -52,6 +54,8 @@ function AppRoutes({ setUsername }) {
         <Route path='/CoordinatorLogin' element={<CoordinatorLogin/>} />
         <Route path='/coordSignup' element={<CoordSignUp/>} />
         <Route path='/coorddashboard' element={<CoordDashboard/>} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
 
         

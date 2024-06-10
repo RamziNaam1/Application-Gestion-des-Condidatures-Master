@@ -8,6 +8,9 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const http = require('http');
 const sockjs = require('sockjs');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+
 
 const app = express();
 app.use(bodyParser.json());
@@ -170,7 +173,92 @@ app.post('/logout', (req, res) => {
     // Nothing to do here for now, can be expanded in the future
     return res.status(200).json({ success: true, message: 'Logout successful' });
 });
-
+// Endpoint to handle forgot password requests
+app.post('/forgot-password', (req, res) => {
+    const { email } = req.body;
+  
+    // Check if the email exists in the database
+    db.query('SELECT * FROM login WHERE email = ?', [email], (err, results) => {
+      if (err) {
+        console.error('Database query error:', err);
+        return res.status(500).json({ success: false, message: 'An error occurred. Please try again later.' });
+      }
+  
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+  
+      const user = results[0];
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
+  
+      // Update the user with the reset token and expiry
+      db.query('UPDATE login SET reset_token = ?, reset_token_expiry = ? WHERE email = ?', [resetToken, resetTokenExpiry, email], (err) => {
+        if (err) {
+          console.error('Database update error:', err);
+          return res.status(500).json({ success: false, message: 'An error occurred. Please try again later.' });
+        }
+  
+        // Send email with reset link
+        const transporter = nodemailer.createTransport({
+          service: 'Gmail',
+          auth: {
+            user: 'ramzinaam20@gmail.com', // replace with your email
+            pass: 'Asmamiled123', // replace with your email password
+          },
+        });
+  
+        const mailOptions = {
+          to: user.email,
+          from: 'ramzinaam20@gmail.com',
+          subject: 'Password Reset',
+          text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
+                 Please click on the following link, or paste this into your browser to complete the process:\n\n
+                 http://localhost:3000/reset-password/${resetToken}\n\n
+                 If you did not request this, please ignore this email and your password will remain unchanged.\n`,
+        };
+  
+        transporter.sendMail(mailOptions, (err) => {
+          if (err) {
+            console.error('Error sending email:', err);
+            return res.status(500).json({ success: false, message: 'An error occurred while sending the email. Please try again later.' });
+          }
+  
+          res.json({ success: true, message: 'Password reset link sent to your email' });
+        });
+      });
+    });
+  });
+  
+  // Endpoint to handle reset password requests
+  app.post('/reset-password', (req, res) => {
+    const { token, password } = req.body;
+  
+    // Check if the token exists and is not expired
+    db.query('SELECT * FROM login WHERE reset_token = ? AND reset_token_expiry > ?', [token, Date.now()], async (err, results) => {
+      if (err) {
+        console.error('Database query error:', err);
+        return res.status(500).json({ success: false, message: 'An error occurred. Please try again later.' });
+      }
+  
+      if (results.length === 0) {
+        return res.status(400).json({ success: false, message: 'Invalid or expired token' });
+      }
+  
+      const user = results[0];
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Update the user's password and clear the reset token
+      db.query('UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE reset_token = ?', [hashedPassword, token], (err) => {
+        if (err) {
+          console.error('Database update error:', err);
+          return res.status(500).json({ success: false, message: 'An error occurred. Please try again later.' });
+        }
+  
+        res.json({ success: true, message: 'Password reset successfully' });
+      });
+    });
+  });
 // Profile endpoint
 app.get('/users', (req, res) => {
     const sql = "SELECT * FROM login";
@@ -632,24 +720,84 @@ app.get('/applications', (req, res) => {
     });
 });
 
+// POST method to save or update admin info
 app.post('/admininfo', upload.single('image'), (req, res) => {
     const { fullName, email, phoneNumber, department, role, biography } = req.body;
-    const image = req.file.filename;
+    const image = req.file ? req.file.filename : null;
   
-    const sql = `INSERT INTO admininfo (fullName, email, phoneNumber, department, role, biography, profileImage) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
-    const values = [fullName, email, phoneNumber, department, role, biography, image];
-  
-    db.query(sql, values, (err, result) => {
+    // Check if the admin info exists
+    const checkSql = `SELECT * FROM admininfo ORDER BY id DESC LIMIT 1`;
+    db.query(checkSql, (err, result) => {
       if (err) {
-        console.error('Error saving admin info:', err);
-        return res.status(500).json({ success: false, message: 'An error occurred while saving admin info' });
+        console.error('Error checking admin info:', err);
+        return res.status(500).json({ success: false, message: 'An error occurred while checking admin info' });
       }
   
-      console.log('Admin info saved successfully:', result);
-      return res.status(200).json({ success: true, message: 'Admin info saved successfully' });
+      if (result.length > 0) {
+        // Update the existing record
+        const updateSql = `UPDATE admininfo SET fullName = ?, email = ?, phoneNumber = ?, department = ?, role = ?, biography = ?${image ? ', profileImage = ?' : ''} WHERE id = ?`;
+        const values = [fullName, email, phoneNumber, department, role, biography];
+        if (image) values.push(image);
+        values.push(result[0].id);
+  
+        db.query(updateSql, values, (err, updateResult) => {
+          if (err) {
+            console.error('Error updating admin info:', err);
+            return res.status(500).json({ success: false, message: 'An error occurred while updating admin info' });
+          }
+  
+          console.log('Admin info updated successfully:', updateResult);
+          return res.status(200).json({ success: true, message: 'Admin info updated successfully' });
+        });
+      } else {
+        // Insert a new record
+        const insertSql = `INSERT INTO admininfo (fullName, email, phoneNumber, department, role, biography, profileImage) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?)`;
+        const values = [fullName, email, phoneNumber, department, role, biography, image];
+  
+        db.query(insertSql, values, (err, insertResult) => {
+          if (err) {
+            console.error('Error saving admin info:', err);
+            return res.status(500).json({ success: false, message: 'An error occurred while saving admin info' });
+          }
+  
+          console.log('Admin info saved successfully:', insertResult);
+          return res.status(200).json({ success: true, message: 'Admin info saved successfully' });
+        });
+      }
     });
   });
+  // GET method to fetch admin info
+app.get('/admininfo', (req, res) => {
+    const sql = `SELECT fullName, email, phoneNumber, department, role, biography, profileImage FROM admininfo ORDER BY id DESC LIMIT 1`;
+  
+    db.query(sql, (err, result) => {
+      if (err) {
+        console.error('Error fetching admin info:', err);
+        return res.status(500).json({ success: false, message: 'An error occurred while fetching admin info' });
+      }
+  
+      if (result.length === 0) {
+        return res.status(404).json({ success: false, message: 'No admin info found' });
+      }
+  
+      const adminInfo = result[0];
+      return res.status(200).json({
+        success: true,
+        adminInfo: {
+          fullName: adminInfo.fullName,
+          email: adminInfo.email,
+          phoneNumber: adminInfo.phoneNumber,
+          department: adminInfo.department,
+          role: adminInfo.role,
+          biography: adminInfo.biography,
+          imageUrl: `http://localhost:8081/uploads/${adminInfo.profileImage}`
+        }
+      });
+    });
+  });
+  
+  
   app.post('/teachers', (req, res) => {
     const { name, email, cin, city, contact, address, dob, gender, expertise, selectedProgram, loginEmail, loginPassword } = req.body;
     const query = 'INSERT INTO teachers (name, email, cin, city, contact, address, dob, gender, expertise, program, login_email, login_password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';

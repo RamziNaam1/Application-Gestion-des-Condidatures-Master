@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaSyncAlt, FaFilePdf, FaFileExcel, FaCheckCircle, FaArrowLeft, FaTrash } from 'react-icons/fa';
+import { FaSyncAlt, FaFilePdf, FaCheckCircle, FaArrowLeft, FaTrash } from 'react-icons/fa';
 import { Document, Page } from 'react-pdf';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -9,6 +9,10 @@ import { pdfjs } from 'react-pdf';
 import './pdfStyle.css';
 import { MdViewKanban } from "react-icons/md";
 import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { PDFDocument,rgb , StandardFonts} from 'pdf-lib';
+import { saveAs } from 'file-saver';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.js',
@@ -75,10 +79,6 @@ function DemandList() {
   }, [selectedTitle, applications]);
 
   const handleViewFiles = (files, applicationData) => {
-    console.log('filabac', applicationData.fileBac);
-    console.log('applicationData:', applicationData);
-    console.log('files:', files);
-    
     const mainFiles = [
       applicationData.file1,
       applicationData.file2,
@@ -174,6 +174,99 @@ function DemandList() {
     return application.title.toLowerCase().includes(searchTerm.toLowerCase()) || application.cin.includes(searchTerm);
   });
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+
+    doc.text('Demandes List', 14, 16);
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+
+    const tableColumn = ["#", "Username", "CIN", "Title", "Moyenne", "Score"];
+    const tableRows = [];
+
+    filteredApplicationsList.forEach((application, index) => {
+      const applicationData = [
+        index + 1,
+        application.username,
+        application.cin,
+        application.title,
+        application.moyenne_totale,
+        application.score_accumulator
+      ];
+      tableRows.push(applicationData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+
+    doc.save('demandes_list.pdf');
+  };
+
+ const exportViewedFilesToPDF = async () => {
+  const mergedPdf = await PDFDocument.create();
+  const username = applicationData.username;
+  const moyenne = applicationData.moyenne_totale;
+  const score = applicationData.score_accumulator;
+
+  try {
+    // Create a new page for the username and other details
+    const usernamePage = mergedPdf.addPage([595.28, 841.89]); // A4 size in points
+    const { width, height } = usernamePage.getSize();
+    const font = await mergedPdf.embedFont(StandardFonts.Helvetica);
+    
+    // Add username, moyenne, and score to the page
+    usernamePage.drawText(`Username: ${username}`, {
+      x: 50,
+      y: height - 100,
+      size: 24,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+    usernamePage.drawText(`Moyenne Totale: ${moyenne}`, {
+      x: 50,
+      y: height - 140,
+      size: 18,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+    usernamePage.drawText(`Score Accumulator: ${score}`, {
+      x: 50,
+      y: height - 180,
+      size: 18,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+
+    // Loop through the file URLs and fetch each file
+    for (let index = 0; index < files.length; index++) {
+      const fileUrl = files[index];
+      const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+      const pdfDoc = await PDFDocument.load(response.data);
+
+      const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+      copiedPages.forEach((page) => {
+        mergedPdf.addPage(page);
+      });
+
+      console.log(`File ${index + 1} added to PDF.`);
+    }
+
+    const mergedPdfBytes = await mergedPdf.save();
+    const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+
+    saveAs(blob, `files_${applicationData.username}.pdf`);
+    console.log('PDF exported successfully.');
+  } catch (error) {
+    console.error('Error exporting files to PDF:', error);
+  }
+};
+  
+  
+
+
   return (
     <div className="container" style={{ fontFamily: 'PT Sans' }}>
       {!showFiles && (
@@ -182,13 +275,13 @@ function DemandList() {
             <h4 className="title" style={{ color:'#323e4e', fontSize: '28px', fontWeight: '500', textTransform: 'capitalize', lineHeight: '40px', margin: '0' }}>Demandes List</h4>
             <div className="btn_group d-flex justify-content-end align-items-center">
               <input type="text" className="form-control mr-4" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ color: '#fff', backgroundColor: 'transparent', width: '35%', height: '40px', border: '2px solid #fff', borderRadius: '20px', transition: 'all 0.3s ease 0s' }} />
-              <select className="form-control mr-2" value={selectedTitle} onChange={handleTitleChange} style={{ color: '#000', backgroundColor: 'transparent', border: '2px solid #fff', borderRadius: '20px', transition: 'all 0.3s ease 0s',marginRight:'10px',marginLeft:'10px' }}>
+              <select className="form-control mr-2" value={selectedTitle} onChange={handleTitleChange} style={{ color: '#000', backgroundColor: 'transparent', border: '2px solid #fff', borderRadius: '20px', transition: 'all 0.3s ease 0s', marginRight: '10px', marginLeft: '10px' }}>
                 <option value="">All Titles</option>
                 {masterTitles.map((title, index) => (
                   <option key={index} value={title}>{title}</option>
                 ))}
               </select>
-              <button className="btn btn-default mr-2" title="Pdf" style={{ color: 'rgba(255,255,255,0.5)', background: 'transparent', fontSize: '16px', textTransform: 'capitalize', border: '2px solid #fff', borderRadius: '50px', transition: 'all 0.3s ease 0s' }}><FaFilePdf /></button>
+              <button className="btn btn-default mr-2" title="Pdf" onClick={exportToPDF} style={{ color: 'rgba(255,255,255,0.5)', background: 'transparent', fontSize: '16px', textTransform: 'capitalize', border: '2px solid #fff', borderRadius: '50px', transition: 'all 0.3s ease 0s' }}><FaFilePdf /></button>
             </div>
           </div>
           <div className="panel-body table-responsive">
@@ -283,31 +376,45 @@ function DemandList() {
             <div className="file-container">
               {applicationData && (
                 <div className="application-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems:'center' }}>
-                <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '5px', marginRight: '10px', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' }}>
-                  <p style={{ margin: '0' }}>Moyenne Totale:</p>
-                  <p style={{ margin: '0', fontWeight: 'bold' }}>{applicationData.moyenne_totale}</p>
+                  <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '5px', marginRight: '10px', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' }}>
+                    <p style={{ margin: '0' }}>Moyenne Totale:</p>
+                    <p style={{ margin: '0', fontWeight: 'bold' }}>{applicationData.moyenne_totale}</p>
+                  </div>
+                  <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '5px', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' }}>
+                    <p style={{ margin: '0' }}>Score Accumulator:</p>
+                    <p style={{ margin: '0', fontWeight: 'bold' }}>{applicationData.score_accumulator}</p>
+                  </div>
+                  <button 
+                    className="btn btn-default" 
+                    title="Export PDF" 
+                    onClick={exportViewedFilesToPDF} 
+                    style={{ 
+                      color: 'rgba(0,0,0,0.5)', 
+                      background: 'transparent', 
+                      fontSize: '16px', 
+                      textTransform: 'capitalize', 
+                      border: '2px solid #000', 
+                      borderRadius: '5px', 
+                      transition: 'all 0.3s ease 0s' 
+                    }}>
+                    <FaFilePdf /> Export Files
+                  </button>
                 </div>
-                <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '5px', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' }}>
-                  <p style={{ margin: '0' }}>Score Accumulator:</p>
-                  <p style={{ margin: '0', fontWeight: 'bold' }}>{applicationData.score_accumulator}</p>
+              )}
+              {files.map((file, index) => (
+                <div key={index} className="file-item">
+                  <p className="file-name">Releve de note {index + 1}:</p>
+                  <Document file={file}>
+                    <Page pageNumber={1} className="pdf-page" />
+                  </Document>
                 </div>
-              </div>
-            )}
-            {files.map((file, index) => (
-              <div key={index} className="file-item">
-                <p className="file-name">Releve de note {index + 1}:</p>
-                <Document file={file}>
-                  <Page pageNumber={1} className="pdf-page" />
-                </Document>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    )}
-  </div>
-);
+      )}
+    </div>
+  );
 }
 
 export default DemandList;
-

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Row, Col, Modal } from 'react-bootstrap';
+import { Container, Form, Button, Row, Col, Modal, Alert } from 'react-bootstrap';
 import { BiCamera } from 'react-icons/bi';
 import adminphoto from '../images/adminphoto.png';
 import { MdChangeCircle } from 'react-icons/md';
@@ -23,19 +23,33 @@ const AdminInfo = () => {
   const [uploadedImage, setUploadedImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
+  const [showAlert, setShowAlert] = useState(false); // State for alert visibility
 
   useEffect(() => {
-    // Check if admin information exists in localStorage
-    const storedAdminInfo = localStorage.getItem('adminInfo');
-    if (storedAdminInfo) {
-      setFormData(JSON.parse(storedAdminInfo));
-    }
-
-    // Check if admin image exists in localStorage
-    const storedImageUrl = localStorage.getItem('adminImage');
-    if (storedImageUrl) {
-      setImageUrl(storedImageUrl);
-    }
+    // Fetch admin information and image from the database
+    fetch('http://localhost:8081/admininfo')
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          setFormData({
+            fullName: data.adminInfo.fullName,
+            email: data.adminInfo.email,
+            password: '',
+            phoneNumber: data.adminInfo.phoneNumber,
+            department: data.adminInfo.department,
+            role: data.adminInfo.role,
+            biography: data.adminInfo.biography,
+            socialMediaLinks: '',
+            currentPassword: '',
+            newPassword: '',
+            confirmNewPassword: '',
+          });
+          setImageUrl(data.adminInfo.imageUrl);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching admin information:', error);
+      });
   }, []);
 
   const handleChange = (e) => {
@@ -49,7 +63,6 @@ const AdminInfo = () => {
       setUploadedImage(file);
       const imageUrl = URL.createObjectURL(file);
       setImageUrl(imageUrl);
-      localStorage.setItem('adminImage', imageUrl);
     }
   };
 
@@ -68,10 +81,12 @@ const AdminInfo = () => {
       method: 'POST',
       body: formDataToSend,
     })
-      .then((response) => {
-        if (response.ok) {
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
           console.log('General information saved successfully');
-          localStorage.setItem('adminInfo', JSON.stringify(formData));
+          setShowAlert(true); // Show success alert
+          setTimeout(() => setShowAlert(false), 3000); // Hide alert after 3 seconds
         } else {
           console.error('Failed to save general information');
         }
@@ -97,6 +112,7 @@ const AdminInfo = () => {
   return (
     <Container className="admin-profile-container">
       <h1 className="admin-profile-heading" style={{fontWeight:'bold',color:'#0077b6'}}>PROFILE</h1>
+      {showAlert && <Alert variant="success">Information saved successfully!</Alert>}
       <Row className="mb-3">
         <Col xs={12} md={6} className="d-flex justify-content-end">
           <Button className="change-password-button" onClick={openModal} style={{  marginBottom:'70px' ,marginTop: '-60px', marginRight: '-560px',backgroundColor:'#27374d' }}>
@@ -185,11 +201,8 @@ const AdminInfo = () => {
           </Col>
         </Row>
 
-
-
-
         {/* General Information Section */}
-        <Row className="mb-3"style={{marginTop:'-470px'}}>
+        <Row className="mb-3" style={{marginTop:'-470px'}}>
           <Form.Group className="mb-3">
             <Form.Label className="fw-bold">General Information</Form.Label>
             <Row>
@@ -286,12 +299,11 @@ const AdminInfo = () => {
           </Form.Group>
         </Row>
 
-
         {/* Save General Info Button */}
         <Button
           type="submit"
           className="submit-button"
-          style={{ width: '150px', display: 'block', margin: 'auto' ,backgroundColor:'#27374d'}}
+          style={{ width: '150px', display: 'block', margin: 'auto', backgroundColor: '#27374d' }}
           onClick={handleGeneralInfoSubmit}
         >
           Save Info
@@ -349,3 +361,4 @@ const AdminInfo = () => {
 };
 
 export default AdminInfo;
+

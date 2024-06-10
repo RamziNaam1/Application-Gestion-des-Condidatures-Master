@@ -32,9 +32,10 @@ function Login({ setUsername }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setErrors(validation(values)); // Validate inputs
+    const validationErrors = validation(values);
+    setErrors(validationErrors); // Validate inputs
 
-    if (Object.values(errors).every((value) => value === '')) {
+    if (Object.values(validationErrors).every((value) => value === '')) {
       try {
         const res = await axios.post('http://localhost:8081/login', values);
         if (res.data.success) {
@@ -88,7 +89,6 @@ function Login({ setUsername }) {
 
         <MDBCol md='6'>
           <MDBCard className='my-5' style={{ overflow: 'hidden', height: '500px', width: '600px' }}>
-
             <MDBCardBody className='p-5 d-flex flex-column align-items-center' style={{ marginTop: '30px' }}>
               <FaUserGraduate size={64} className='mb-4' style={{ color: '#000', marginTop: '-30px' }} /> {/* Using FaUser icon */}
               <h4 style={{ marginBottom: '20px', marginTop: '10px', fontWeight: 'bold', color: '#0077b6' }}>Welcome Back</h4>
@@ -108,7 +108,7 @@ function Login({ setUsername }) {
               </form>
               <div className='d-flex justify-content-between w-100 mb-4' style={{ fontWeight: 'bold', }}>
                 <Link to='/signup' style={{ textDecoration: 'none', color: '#0077b6' }}>Sign Up</Link>
-                <a href='/forgot-password' style={{ textDecoration: 'none', color: '#0077b6' }}>Forgot Password</a>
+                <Link to='/forgot-password' style={{ textDecoration: 'none', color: '#0077b6' }}>Forgot Password</Link>
               </div>
             </MDBCardBody>
           </MDBCard>
