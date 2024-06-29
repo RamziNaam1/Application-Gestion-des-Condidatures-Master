@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaEdit, FaTrash, FaFilePdf, FaArrowLeft } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaFilePdf, FaArrowLeft,FaSyncAlt } from 'react-icons/fa';
 import { Document, Page } from 'react-pdf';
 import Swal from 'sweetalert2';
 import '@react-pdf-viewer/core/lib/styles/index.css';
@@ -26,25 +26,27 @@ function DemandeList() {
   const [showFiles, setShowFiles] = useState(false);
   const [selectedDemande, setSelectedDemande] = useState(null);
   const [demandeData, setDemandeData] = useState(null);
+  const [sortOrder, setSortOrder] = useState('desc');
+
+
+  const fetchDemandes = async () => {
+    try {
+      const tokenTeacher = localStorage.getItem('tokenTeacher');
+      const response = await axios.get(`http://localhost:8081/teacherDemandes`, {
+        headers: {
+          Authorization: `Bearer ${tokenTeacher}`
+        }
+      });
+      console.log('Response from server:', response.data);
+      setDemandes(response.data.demandes);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching demandes:', error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDemandes = async () => {
-      try {
-        const tokenTeacher = localStorage.getItem('tokenTeacher');
-        const response = await axios.get(`http://localhost:8081/teacherDemandes`, {
-          headers: {
-            Authorization: `Bearer ${tokenTeacher}`
-          }
-        });
-        console.log('Response from server:', response.data);
-        setDemandes(response.data.demandes);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching demandes:', error);
-        setLoading(false);
-      }
-    };
-
     fetchDemandes();
   }, []);
 
@@ -166,6 +168,47 @@ function DemandeList() {
   const filteredDemandes = demandes.filter(demande => {
     return demande.username.toLowerCase().includes(searchTerm.toLowerCase()) || demande.cin.includes(searchTerm);
   });
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
+
+  const sortApplications = (apps) => {
+    const sortedApps = [...apps].sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.score_accumulator - b.score_accumulator;
+      } else {
+        return b.score_accumulator - a.score_accumulator;
+      }
+    });
+    return sortedApps;
+  };
+
+  const approveAllDemandes = async () => {
+    try {
+      const tokenTeacher = localStorage.getItem('tokenTeacher');
+      await Promise.all(demandes.map(async demande => {
+        const { username, cordID, cin, title, moyenne_totale, score_accumulator } = demande;
+        await axios.post('http://localhost:8081/resultat', {
+          username,
+          cordID,
+          cin,
+          title,
+          moyenne_totale,
+          score_accumulator
+        }, {
+          headers: {
+            Authorization: `Bearer ${tokenTeacher}`
+          }
+        });
+      }));
+      Swal.fire('Approved!', 'All demandes have been approved.', 'success');
+      // You may want to reload the demandes after approval
+      fetchDemandes();
+    } catch (error) {
+      console.error('Error approving demandes:', error);
+      Swal.fire('Error!', 'There was an error approving the demandes.', 'error');
+    }
+  };
 
   return (
     <div className="container">
@@ -176,6 +219,7 @@ function DemandeList() {
             <div className="btn_group d-flex justify-content-end align-items-center">
                 <input type="text" className="form-control mr-4" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ color: '#fff', backgroundColor: 'transparent', width: '35%', height: '40px', border: '2px solid #fff', borderRadius: '20px', transition: 'all 0.3s ease 0s' }} />
                 <button className="btn btn-default mr-2" title="Pdf" onClick={exportAllDemandesToPDF} style={{ color: 'rgba(255,255,255,0.5)', background: 'transparent', fontSize: '16px', textTransform: 'capitalize', border: '2px solid #fff', borderRadius: '50px', transition: 'all 0.3s ease 0s' }}><FaFilePdf /></button>
+                <button className="btn btn-success" onClick={approveAllDemandes} style={{ fontSize: '16px', textTransform: 'capitalize', borderRadius: '50px', transition: 'all 0.3s ease 0s' }}>Approve All</button>
             </div>
           </div>
           <div className="panel-body table-responsive">
@@ -186,16 +230,20 @@ function DemandeList() {
                   <th>Etudiant</th>
                   <th>CIN</th>
                   <th>Master</th>
+                  <th>Moyenne</th>
+                  <th onClick={toggleSortOrder} style={{ cursor: 'pointer' }}>Score <FaSyncAlt style={{ verticalAlign: 'middle', fontSize: '14px', marginLeft: '5px', transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' }} /></th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredDemandes.map((demande, index) => (
+                {sortApplications( filteredDemandes).map((demande, index) => (
                   <tr key={demande.id}>
                     <td>{index + 1}</td>
                     <td>{demande.username}</td>
                     <td>{demande.cin}</td>
                     <td>{demande.title}</td>
+                    <td>{demande.moyenne_totale} </td>
+                    <td>{demande.score_accumulator} </td>
                     <td>
                       <ul className="list-inline d-flex">
                           <li className="mr-3"><a href="#" data-tip="edit" style={{ color:'#5f7593', fontSize: '24px' }}><FaEdit /></a></li>
@@ -250,18 +298,20 @@ function DemandeList() {
               )}
               {files.map((file, index) => (
                 <div key={index} className="file-item">
-                  <p className="file-name">Releve de note {index + 1}:</p>
-                  <Document file={file}>
-                    <Page pageNumber={1} className="pdf-page" />
-                  </Document>
-                </div>
-              ))}
-            </div>
+                <p className="file-name">Releve de note {index + 1}:</p>
+                <Document file={file}>
+                  <Page pageNumber={1} className="pdf-page" />
+                </Document>
+              </div>
+            ))}
           </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 }
 
 export default DemandeList;
+
+

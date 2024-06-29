@@ -11,7 +11,7 @@ import { MdViewKanban } from "react-icons/md";
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { PDFDocument,rgb , StandardFonts} from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { saveAs } from 'file-saver';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -264,107 +264,57 @@ function DemandList() {
   }
 };
   
-  
-
-
   return (
-    <div className="container" style={{ fontFamily: 'PT Sans' }}>
+    <div className="container" style={{ fontFamily: 'PT Sans', padding: '20px' }}>
       {!showFiles && (
         <div className="panel">
-          <div className="panel-heading" style={{ padding: '20px 15px', borderRadius: '10px 10px 0 0', margin: '0', background: 'linear-gradient(90deg, rgba(221,230,237,1) 0%, rgba(39,55,77,1) 68%)' }}>
-            <h4 className="title" style={{ color:'#323e4e', fontSize: '28px', fontWeight: '500', textTransform: 'capitalize', lineHeight: '40px', margin: '0' }}>Demandes List</h4>
-            <div className="btn_group d-flex justify-content-end align-items-center">
-              <input type="text" className="form-control mr-4" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ color: '#fff', backgroundColor: 'transparent', width: '35%', height: '40px', border: '2px solid #fff', borderRadius: '20px', transition: 'all 0.3s ease 0s' }} />
-              <select className="form-control mr-2" value={selectedTitle} onChange={handleTitleChange} style={{ color: '#000', backgroundColor: 'transparent', border: '2px solid #fff', borderRadius: '20px', transition: 'all 0.3s ease 0s', marginRight: '10px', marginLeft: '10px' }}>
+          <div className="panel-heading" style={styles.panelHeading}>
+            <h4 className="title" style={styles.title}>Demandes List</h4>
+            <div className="btn_group" style={styles.btnGroup}>
+              <input type="text" className="form-control" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={styles.searchInput} />
+              <select className="form-control" value={selectedTitle} onChange={handleTitleChange} style={styles.selectInput}>
                 <option value="">All Titles</option>
                 {masterTitles.map((title, index) => (
                   <option key={index} value={title}>{title}</option>
                 ))}
               </select>
-              <button className="btn btn-default mr-2" title="Pdf" onClick={exportToPDF} style={{ color: 'rgba(255,255,255,0.5)', background: 'transparent', fontSize: '16px', textTransform: 'capitalize', border: '2px solid #fff', borderRadius: '50px', transition: 'all 0.3s ease 0s' }}><FaFilePdf /></button>
+              <button className="btn btn-default" title="Pdf" onClick={exportToPDF} style={styles.pdfButton}><FaFilePdf /></button>
             </div>
           </div>
           <div className="panel-body table-responsive">
-            <table className="table">
+            <table className="table" style={styles.table}>
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Username</th>
-                  <th>CIN</th>
-                  <th>Title</th>
-                  <th>Moyenne</th>
-                  <th onClick={toggleSortOrder} style={{ cursor: 'pointer' }}>Score <FaSyncAlt style={{ verticalAlign: 'middle', fontSize: '14px', marginLeft: '5px', transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' }} /></th>
-                  <th>Actions</th>
+                  <th style={styles.tableHeader}>#</th>
+                  <th style={styles.tableHeader}>Username</th>
+                  <th style={styles.tableHeader}>CIN</th>
+                  <th style={styles.tableHeader}>Title</th>
+                  <th style={styles.tableHeader}>Moyenne</th>
+                  <th style={styles.tableHeader} onClick={toggleSortOrder}>Score <FaSyncAlt style={styles.sortIcon(sortOrder)} /></th>
+                  <th style={styles.tableHeader}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {sortApplications(filteredApplicationsList).map((application, index) => (
-                  <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>{application.username}</td>
-                    <td>{application.cin}</td>
-                    <td>{application.title}</td>
-                    <td>{application.moyenne_totale}</td>
-                    <td>{application.score_accumulator}</td>
-                    <td className="list-inline d-flex justify-content-center">
-                      <button
-                        onClick={() => handleViewFiles([application.file1, application.file2, application.file3, application.fileBac], application)} // Pass all files including fileBac here
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: 'transparent',
-                          color: '#5f7593',
-                          border: 'none',
-                          padding: '10px 20px',
-                          borderRadius: '5px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <MdViewKanban style={{  fontSize: '30px'}} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteConfirmation(application)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: 'transparent',
-                          color: '#5f7593',
-                          border: 'none',
-                          padding: '10px 20px',
-                          borderRadius: '5px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <FaTrash style={{  fontSize: '24px'}} />
-                      </button>
-                      <button
-                        onClick={() => handleAnotherAction(application, index)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: 'transparent',
-                          color: actionPerformedRows[index] ? 'green' : '#5f7593',
-                          border: 'none',
-                          padding: '10px 20px',
-                          borderRadius: '5px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <FaCheckCircle style={{  fontSize: '24px'}}/>
-                      </button>
+                  <tr key={index} style={styles.tableRow}>
+                    <td style={styles.tableCell}>{index + 1}</td>
+                    <td style={styles.tableCell}>{application.username}</td>
+                    <td style={styles.tableCell}>{application.cin}</td>
+                    <td style={styles.tableCell}>{application.title}</td>
+                    <td style={styles.tableCell}>{application.moyenne_totale}</td>
+                    <td style={styles.tableCell}>{application.score_accumulator}</td>
+                    <td style={styles.actionCell}>
+                      <button onClick={() => handleViewFiles([application.file1, application.file2, application.file3, application.fileBac], application)} style={styles.actionButton}><MdViewKanban style={styles.icon} /></button>
+                      <button onClick={() => handleDeleteConfirmation(application)} style={styles.actionButton}><FaTrash style={styles.icon} /></button>
+                      <button onClick={() => handleAnotherAction(application, index)} style={{ ...styles.actionButton, color: actionPerformedRows[index] ? 'green' : '#5f7593' }}><FaCheckCircle style={styles.icon} /></button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="panel-footer" style={{ color: '#fff', backgroundColor: 'transparent', padding: '15px', border: 'none' }}>
-            <div className="row">
-              <div className="col-sm-6 col-xs-6">Showing <b>{filteredApplicationsList.length}</b> out of <b>{applications.length}</b> entries</div>
-            </div>
+          <div className="panel-footer" style={styles.panelFooter}>
+            <div>Showing <b>{filteredApplicationsList.length}</b> out of <b>{applications.length}</b> entries</div>
           </div>
         </div>
       )}
@@ -372,40 +322,32 @@ function DemandList() {
       {showFiles && (
         <div className="files-section">
           <div className="file-container-wrapper">
-            <button onClick={handleBackToList} className="back-button"><FaArrowLeft /></button>
-            <div className="file-container">
+            <button onClick={handleBackToList} className="back-button" style={styles.backButton}><FaArrowLeft /></button>
+            <div className="file-container" style={styles.fileContainer}>
               {applicationData && (
-                <div className="application-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems:'center' }}>
-                  <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '5px', marginRight: '10px', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' }}>
-                    <p style={{ margin: '0' }}>Moyenne Totale:</p>
-                    <p style={{ margin: '0', fontWeight: 'bold' }}>{applicationData.moyenne_totale}</p>
+                <div className="application-info" style={styles.applicationInfo}>
+                  <div style={styles.infoBox}>
+                    <p style={styles.infoLabel}>Moyenne Totale:</p>
+                    <p style={styles.infoValue}>{applicationData.moyenne_totale}</p>
                   </div>
-                  <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '5px', boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' }}>
-                    <p style={{ margin: '0' }}>Score Accumulator:</p>
-                    <p style={{ margin: '0', fontWeight: 'bold' }}>{applicationData.score_accumulator}</p>
+                  <div style={styles.infoBox}>
+                    <p style={styles.infoLabel}>Score Accumulator:</p>
+                    <p style={styles.infoValue}>{applicationData.score_accumulator}</p>
                   </div>
                   <button 
                     className="btn btn-default" 
                     title="Export PDF" 
                     onClick={exportViewedFilesToPDF} 
-                    style={{ 
-                      color: 'rgba(0,0,0,0.5)', 
-                      background: 'transparent', 
-                      fontSize: '16px', 
-                      textTransform: 'capitalize', 
-                      border: '2px solid #000', 
-                      borderRadius: '5px', 
-                      transition: 'all 0.3s ease 0s' 
-                    }}>
+                    style={styles.exportButton}>
                     <FaFilePdf /> Export Files
                   </button>
                 </div>
               )}
               {files.map((file, index) => (
-                <div key={index} className="file-item">
-                  <p className="file-name">Releve de note {index + 1}:</p>
+                <div key={index} className="file-item" style={styles.fileItem}>
+                  <p className="file-name" style={styles.fileName}>Releve de note {index + 1}:</p>
                   <Document file={file}>
-                    <Page pageNumber={1} className="pdf-page" />
+                    <Page pageNumber={1} className="pdf-page" style={styles.pdfPage} />
                   </Document>
                 </div>
               ))}
@@ -416,5 +358,179 @@ function DemandList() {
     </div>
   );
 }
+
+const styles = {
+  panelHeading: {
+    padding: '20px 15px',
+    borderRadius: '10px 10px 0 0',
+    margin: '0',
+    background: 'linear-gradient(90deg, rgba(221,230,237,1) 0%, rgba(39,55,77,1) 68%)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  title: {
+    color:'#323e4e',
+    fontSize: '28px',
+    fontWeight: '500',
+    textTransform: 'capitalize',
+    lineHeight: '40px',
+    margin: '0'
+  },
+  btnGroup: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+  searchInput: {
+    color: '#fff',
+    backgroundColor: 'transparent',
+    width: '35%',
+    height: '40px',
+    border: '2px solid #fff',
+    borderRadius: '20px',
+    transition: 'all 0.3s ease 0s',
+    marginRight: '10px'
+  },
+  selectInput: {
+    color: '#000',
+    backgroundColor: 'transparent',
+    border: '2px solid #fff',
+    borderRadius: '20px',
+    transition: 'all 0.3s ease 0s',
+    marginRight: '10px'
+  },
+  pdfButton: {
+    color: 'rgba(255,255,255,0.5)',
+    background: 'transparent',
+    fontSize: '16px',
+    textTransform: 'capitalize',
+    border: '2px solid #fff',
+    borderRadius: '50px',
+    transition: 'all 0.3s ease 0s'
+  },
+  table: {
+    width: '100%',
+    marginBottom: '1rem',
+    color: '#212529',
+    borderCollapse: 'collapse'
+  },
+  tableHeader: {
+    padding: '0.75rem',
+    verticalAlign: 'top',
+    borderTop: '1px solid #dee2e6',
+    borderBottom: '2px solid #dee2e6',
+    backgroundColor: '#f8f9fa',
+    textAlign: 'left'
+  },
+  tableRow: {
+    transition: 'background-color 0.3s',
+    '&:hover': {
+      backgroundColor: '#f1f1f1'
+    }
+  },
+  tableCell: {
+    padding: '0.75rem',
+    verticalAlign: 'top',
+    borderTop: '1px solid #dee2e6',
+    textAlign: 'left'
+  },
+  actionCell: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '10px'
+  },
+  actionButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    color: '#5f7593',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    transition: 'color 0.3s',
+    '&:hover': {
+      color: '#000'
+    }
+  },
+  icon: {
+    fontSize: '24px'
+  },
+  sortIcon: (sortOrder) => ({
+    verticalAlign: 'middle',
+    fontSize: '14px',
+    marginLeft: '5px',
+    transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none'
+  }),
+  panelFooter: {
+    color: '#fff',
+    backgroundColor: 'transparent',
+    padding: '15px',
+    border: 'none'
+  },
+  backButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    color: '#5f7593',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+  },
+  fileContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '20px',
+    padding: '20px'
+  },
+  applicationInfo: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  infoBox: {
+    backgroundColor: '#fff',
+    padding: '10px',
+    borderRadius: '5px',
+    marginRight: '10px',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)'
+  },
+  infoLabel: {
+    margin: '0'
+  },
+  infoValue: {
+    margin: '0',
+    fontWeight: 'bold'
+  },
+  exportButton: {
+    color: 'rgba(0,0,0,0.5)', 
+    background: 'transparent', 
+    fontSize: '16px', 
+    textTransform: 'capitalize', 
+    border: '2px solid #000', 
+    borderRadius: '5px', 
+    transition: 'all 0.3s ease 0s'
+  },
+  fileItem: {
+    width: '100%',
+    backgroundColor: '#fff',
+    border: '1px solid #ccc',
+    borderRadius: '5px',
+    padding: '10px',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)'
+  },
+  fileName: {
+    marginBottom: '10px',
+    fontWeight: 'bold'
+  },
+  pdfPage: {
+    border: '1px solid #ccc',
+    borderRadius: '5px'
+  }
+};
 
 export default DemandList;

@@ -143,8 +143,8 @@ function ResultPage() {
   }) : demandes;
 
   const sortedDemandes = filteredDemandesByTitle.sort((a, b) => b.score_accumulator - a.score_accumulator);
-  const firstFiveDemandes = sortedDemandes.slice(0, 5);
-  const waitingListDemandes = sortedDemandes.slice(5);
+  const firstFiveDemandes = sortedDemandes.slice(0, 40);
+  const waitingListDemandes = sortedDemandes.slice(40,60);
 
   return (
     <div className="container">

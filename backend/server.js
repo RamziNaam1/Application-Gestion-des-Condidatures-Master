@@ -1028,15 +1028,12 @@ app.get('/applications_count', (req, res) => {
     });
   });
   app.get('/demand_count', (req, res) => {
-    const sql = 'SELECT COUNT(*) AS count FROM application';
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching demand count:', err);
-            res.status(500).json({ error: 'Internal server error' });
-            return;
-        }
-        const count = results[0].count;
-        res.json({ count });
+    const sql = 'SELECT COUNT(*) AS count FROM application'; // Replace 'demandes' with your actual table name
+
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        console.log('Demand count from database:', result[0].count); // Log the count
+        res.json(result[0]);
     });
 });
 
@@ -1103,6 +1100,33 @@ app.delete('/applications/:id', (req, res) => {
         }
         console.log('teacher deleted successfully:', result);
         return res.status(200).json({ success: true, message: 'teacher deleted successfully' });
+    });
+});
+
+// Fetch highest and lowest scores for each year
+app.get('/highest_lowest_scores', (req, res) => {
+    const sql2023 = 'SELECT MAX(Score) AS highest_score_2023, MIN(Score) AS lowest_score_2023 FROM etudiant_2023';
+    const sql2022 = 'SELECT MAX(Score) AS highest_score_2022, MIN(Score) AS lowest_score_2022 FROM etudiant_2022';
+    const sql2021 = 'SELECT MAX(Score) AS highest_score_2021, MIN(Score) AS lowest_score_2021 FROM etudiant_2021';
+
+    db.query(sql2023, (err, result2023) => {
+        if (err) throw err;
+
+        db.query(sql2022, (err, result2022) => {
+            if (err) throw err;
+
+            db.query(sql2021, (err, result2021) => {
+                if (err) throw err;
+
+                const data = {
+                    highest_lowest_scores_2023: result2023[0],
+                    highest_lowest_scores_2022: result2022[0],
+                    highest_lowest_scores_2021: result2021[0]
+                };
+
+                res.json(data);
+            });
+        });
     });
 });
 app.listen(8081, () => {
